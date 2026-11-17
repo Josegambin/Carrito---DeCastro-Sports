@@ -16,25 +16,54 @@ export class ErrorValidacion extends Error {
   }
 }
 function exigirTexto(campo, valor, longitudMinima = 2) {
-  // TODO 1A: si no es string o tiene pocos caracteres tras trim(), lanzar ErrorValidacion(campo, mensaje).
+  //  1A: si no es string o tiene pocos caracteres tras trim(), lanzar ErrorValidacion(campo, mensaje).
+  if (typeof valor !== "string" || valor.trim().length < longitudMinima) {
+    throw new ErrorValidacion(
+      campo,
+      `El campo "${campo}" debe ser un texto con un tamaño minimo de ${longitudMinima} caracteres.`
+    );
+  }
 
-
+  return valor.trim();
 }
-function exigirNumeroNoNegativo(campo, valor) {
-  // TODO 1B: typeof number, Number.isFinite(valor) y valor >= 0.
 
+
+function exigirNumeroNoNegativo(campo, valor) {
+  //  1B: typeof number, Number.isFinite(valor) y valor >= 0.
+  if (typeof valor !== 'number' || !Number.isFinite(valor) || valor < 0) {
+    throw new ErrorValidacion(
+      campo,
+      `El campo "${campo}" debe ser un numero mayor o igual a 0.`
+    );
+  }
+  return valor;
 }
 
 
 function exigirEnteroPositivo(campo, valor) {
-  // TODO 1C: Number.isInteger(valor) y valor > 0.
+  //  1C: Number.isInteger(valor) y valor > 0.
 
+  if (!Number.isInteger(valor) || valor <= 0) {
+    throw new ErrorValidacion(
+      campo,
+      `El campo "${campo}" debe ser un numero entero y positivo.`
+    )
+  }
 
+  return valor;
 }
 function exigirEnteroNoNegativo(campo, valor) {
-  // TODO 1D: Number.isInteger(valor) y valor >= 0.
+  //  1D: Number.isInteger(valor) y valor >= 0.
+  if (!Number.isInteger(valor) || valor < 0) {
+    throw new ErrorValidacion(
+      campo,
+      `El campo "${campo}" debe ser un numero entero mayor o igual a 0.`
+    )
+  }
 
+  return valor;
 }
+
 
 
 
