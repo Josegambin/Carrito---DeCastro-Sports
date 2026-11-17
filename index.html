@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DeCastro Sports · Mini-tienda (T3 S2)</title>
+
+  <link rel="stylesheet" href="css/estilos.css">
+</head>
+
+<body>
+  <header>
+    <h1>DeCastro Sports</h1>
+    <p>Mini-tienda del ejercicio guiado · Tema 3, sesión 2. Abrid la consola del navegador para ver la demostración.</p>
+  </header>
+
+  <main>
+    <div class="rejilla">
+      <section aria-labelledby="titulo-catalogo">
+        <h2 id="titulo-catalogo">Catálogo</h2>
+        <!-- Se rellena desde app.js con el modelo -->
+        <ul id="catalogo"></ul>
+
+        <details>
+          <summary>Registros de la API rechazados (<span id="num-rechazados">0</span>)</summary>
+          <ul id="rechazados"></ul>
+        </details>
+      </section>
+
+      <section class="carrito" aria-labelledby="titulo-carrito">
+        <h2 id="titulo-carrito">Tu carrito</h2>
+        <ul id="lineas-carrito"></ul>
+        <p id="total">Total: 0,00 €</p>
+        <div class="acciones">
+          <button id="confirmar" type="button">Confirmar compra</button>
+          <button id="vaciar" type="button" class="boton-secundario">Vaciar carrito</button>
+        </div>
+      </section>
+    </div>
+
+    <!-- role="status": los lectores de pantalla anuncian los cambios de este texto -->
+    <p id="estado" class="estado" role="status"></p>
+  </main>
+
+  <!-- type="module": habilita import/export y se carga diferido (el DOM ya existe) -->
+  <script type="module" src="main.js"></script>
+</body>
+</html>
