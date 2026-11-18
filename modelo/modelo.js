@@ -190,38 +190,121 @@ export class ProductoRebajado extends Producto {
 // PASO 4 · Carrito
 export class Carrito {
   #lineas = [];
+
   #buscarLinea(sku) {
-    // TODO 4A: find sobre #lineas, comparando producto.sku.
+    //  4A: find sobre #lineas, comparando producto.sku.
+    return this.#lineas.find((linea) => linea.producto.sku === sku);
   }
+
   agregar(producto, cantidad = 1) {
-    // TODO 4B: validar instanceof Producto y cantidad positiva.
-    // TODO 4C: sumar cantidad existente, comprobar stock TOTAL, actualizar o push.
+    //  4B: validar instanceof Producto y cantidad positiva.
+    if (!(producto instanceof Producto)) {
+      throw new ErrorValidacion(
+        "producto",
+        "El artículo debe ser una instancia válida de Producto."
+      );
+    }
+    const cantValidada = exigirEnteroPositivo("cantidad", cantidad);
+
+    //  4C: sumar cantidad existente, comprobar stock TOTAL, actualizar o push.
+    const lineaExistente = this.#buscarLinea(producto.sku);
+    const cantidadTotal = (lineaExistente ? lineaExistente.cantidad : 0) + cantValidada;
+
+    if (!producto.hayStock(cantidadTotal)) {
+      throw new ErrorValidacion(
+        "stock",
+        `Stock insuficiente para "${producto.nombre}" (solicitado: ${cantidadTotal}, disponible: ${producto.stock}).`
+      );
+    }
+
+    if (lineaExistente) {
+      lineaExistente.cantidad = cantidadTotal;
+    } else {
+      this.#lineas.push({ producto, cantidad: cantValidada });
+    }
   }
+
   quitar(sku) {
-    // TODO 4D: findIndex y splice; si no existe, ErrorValidacion('sku', mensaje).
+    //  4D: findIndex y splice; si no existe, ErrorValidacion('sku', mensaje).
+    const indice = this.#lineas.findIndex((linea) => linea.producto.sku === sku);
+    if (indice === -1) {
+      throw new ErrorValidacion(
+        "sku",
+        `No se encontró ningún producto con SKU "${sku}" en el carrito.`
+      );
+    }
+    this.#lineas.splice(indice, 1);
   }
+
   vaciar() {
-    // TODO 4E: dejar #lineas vacío.
+    //  4E: dejar #lineas vacío.
+    this.#lineas.length = 0;
   }
+
   get lineas() {
-    // TODO 4F: copia del array Y de cada registro {producto, cantidad}.
-    return [];
+    //  4F: copia del array Y de cada registro {producto, cantidad}.
+    return this.#lineas.map(({ producto, cantidad }) => ({ producto, cantidad }));
   }
+
   get unidades() {
-    // TODO 4G: reduce sumando cantidades.
-    return 0;
+    //  4G: reduce sumando cantidades.
+    return this.#lineas.reduce((acc, linea) => acc + linea.cantidad, 0);
   }
+
   get total() {
-    // TODO 4H: reduce con producto.precioConIVA() * cantidad y redondear.
-    return 0;
+    //  4H: reduce con producto.precioConIVA() * cantidad y redondear.
+    const suma = this.#lineas.reduce(
+      (acc, { producto, cantidad }) => acc + producto.precioConIVA() * cantidad,
+      0
+    );
+    return redondear(suma);
   }
+
   resumen() {
-    // TODO 4I: si vacío '(carrito vacío)'; si no, líneas y TOTAL.
-    return '(carrito vacío)';
+    //  4I: si vacío '(carrito vacío)'; si no, líneas y TOTAL.
+    if (this.#lineas.length === 0) {
+      return "(carrito vacío)";
+    }
+
+    const detalleLineas = this.#lineas.map(({ producto, cantidad }) => {
+      const subtotal = redondear(producto.precioConIVA() * cantidad);
+      return `- ${producto.nombre} (${producto.sku}) x${cantidad}: ${formatearMoneda(subtotal)}`;
+    });
+
+    detalleLineas.push(`TOTAL: ${formatearMoneda(this.total)}`);
+    return detalleLineas.join("\n");
   }
+
   confirmarCompra() {
-    // TODO 4J: si vacío, error; PASADA 1 comprobar todas las líneas.
-    // TODO 4K: guardar {unidades,total}; PASADA 2 retirar; vaciar y devolver resumen.
+    //  4J: si vacío, error; PASADA 1 comprobar todas las líneas.
+    if (this.#lineas.length === 0) {
+      throw new ErrorValidacion(
+        "carrito",
+        "No se puede confirmar la compra porque el carrito está vacío."
+      );
+    }
+
+    for (const { producto, cantidad } of this.#lineas) {
+      if (!producto.hayStock(cantidad)) {
+        throw new ErrorValidacion(
+          "stock",
+          `Stock insuficiente para "${producto.nombre}" al confirmar la compra.`
+        );
+      }
+    }
+
+    //  4K: guardar {unidades,total}; PASADA 2 retirar; vaciar y devolver resumen.
+    const resultado = {
+      unidades: this.unidades,
+      total: this.total,
+    };
+
+    for (const { producto, cantidad } of this.#lineas) {
+      producto.retirar(cantidad);
+    }
+
+    this.vaciar();
+    return resultado;
   }
 }
 
