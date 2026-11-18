@@ -70,38 +70,75 @@ function exigirEnteroNoNegativo(campo, valor) {
 // PASO 2 · Producto
 export class Producto {
   #sku; #nombre; #precio; #stock;
+
   constructor({ sku, nombre, precio, stock = 0 }) {
-    // TODO 2A: comprobar PATRON_SKU.test(sku) y guardar #sku.
-    // TODO 2B: asignar this.nombre y this.precio para pasar por los setters.
-    // TODO 2C: validar stock y guardar #stock.
+    //  2A: comprobar PATRON_SKU.test(sku) y guardar #sku.
+    if (!PATRON_SKU.test(sku.trim())) {
+      throw new ErrorValidacion(
+        sku, `El SKU -> "${sku}" debe tener el formato AAA-0000.`);
+    }
+    // 2B: asignar this.nombre y this.precio para pasar por los setters.
+    this.#sku = sku.trim();
+
+    this.nombre = nombre;
+    this.precio = precio;
+
+    //  2C: validar stock y guardar #stock.
+    this.#stock = exigirEnteroNoNegativo("stock", stock);
   }
+
   get sku() { return this.#sku; }
   get nombre() { return this.#nombre; }
   set nombre(valor) {
-    // TODO 2D: validar con exigirTexto y guardar valor.trim().
+    // 2D: validar con exigirTexto y guardar valor.trim().
+    this.#nombre = exigirTexto("nombre", valor);
   }
   get precio() { return this.#precio; }
   set precio(valor) {
-    // TODO 2E: validar ANTES de guardar.
+    // 2E: validar ANTES de guardar.
+    this.#precio = exigirEnteroPositivo("precio", valor);
   }
   get stock() { return this.#stock; }
   hayStock(cantidad = 1) {
-    // TODO 2F: devolver booleano comparando cantidad y #stock.
+
+    //  2F: devolver booleano comparando cantidad y #stock.
+    const cant = exigirEnteroPositivo("cantiad", cantidad)
+    return this.#stock >= cant;
+
   }
   reponer(cantidad) {
-    // TODO 2G: validar entero positivo y aumentar #stock.
+    // 2G: validar entero positivo y aumentar #stock.
+    if (!exigirEnteroPositivo(cantidad)) {
+      throw new ErrorValidacion(
+        cantidad,
+        `La Cantidad "${cantidad} "no es un numero positivo y entero.`
+      )
+    }
   }
+
   retirar(cantidad) {
-    // TODO 2H: validar; si no hay stock, ErrorValidacion('stock', mensaje); si hay, restar.
+    const validada = exigirEnteroPositivo("cantidad", cantidad);
+    if (!this.hayStock(validada)) {
+      throw new ErrorValidacion("stock", "Stock insuficiente para realizar la retirada.");
+    }
+    this.#stock -= validada;
   }
+
   precioConIVA() {
-    // TODO 2I: redondear(precio * (1 + CONFIG.iva)).
+    return redondear(this.#precio * (1 + CONFIG.iva));
   }
+
   resumen() {
-    // TODO 2J: devolver texto con nombre, sku y formatearMoneda(this.precioConIVA()).
+    return `${this.#nombre} (${this.#sku}) - ${formatearMoneda(this.precioConIVA())}`;
   }
+
   toJSON() {
-    // TODO 2K: devolver objeto literal con sku, nombre, precio y stock.
+    return {
+      sku: this.#sku,
+      nombre: this.#nombre,
+      precio: this.#precio,
+      stock: this.#stock
+    };
   }
 }
 
