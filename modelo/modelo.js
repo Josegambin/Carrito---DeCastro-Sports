@@ -145,19 +145,45 @@ export class Producto {
 // PASO 3 · Herencia
 export class ProductoRebajado extends Producto {
   #descuento;
+
   constructor(datos) {
     super(datos);
-    // TODO 3A: validar descuento > 0 y <= CONFIG.descuentoMaximo, finito; guardar #descuento.
+    //  3A: validar descuento > 0 y <= CONFIG.descuentoMaximo, finito; guardar #descuento.
+    const { descuento } = datos;
+    if (typeof descuento !== "number" ||
+      !Number.isFinite(descuento) ||
+      descuento <= 0 ||
+      descuento > CONFIG.descuentoMaximo
+    ) {
+      throw new ErrorValidacion(
+        "descuento",
+        `El descuento debe ser un número mayor que 0 y menor o igual a ${CONFIG.descuentoMaximo}.`
+      );
+    }
+    this.#descuento = descuento;
   }
-  get descuento() { return this.#descuento; }
+
+  get descuento() {
+    return this.#descuento;
+  }
+
   precioConIVA() {
-    // TODO 3B: redondear(super.precioConIVA() * (1 - this.#descuento)).
+    //  3B: redondear(super.precioConIVA() * (1 - this.#descuento)).
+    return redondear(super.precioConIVA() * (1 - this.#descuento));
   }
+
   resumen() {
-    // TODO 3C: ampliar super.resumen() con [-15 %] (según descuento).
+    //  3C: ampliar super.resumen() con [-15 %] (según descuento).
+    const porcentaje = redondear(this.#descuento * 100);
+    return `${super.resumen()} [-${porcentaje} %]`;
   }
+
   toJSON() {
-    // TODO 3D: devolver {...super.toJSON(), descuento: this.#descuento}.
+    //  3D: devolver {...super.toJSON(), descuento: this.#descuento}.
+    return {
+      ...super.toJSON(),
+      descuento: this.#descuento,
+    };
   }
 }
 
