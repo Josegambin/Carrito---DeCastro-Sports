@@ -310,16 +310,70 @@ export class Carrito {
 
 // PASO 5 · Datos API
 export function crearProducto(registroApi) {
-  // TODO 5A: validar que sea objeto no null.
-  // TODO 5B: mapear name->nombre, price->precio, discount->descuento.
-  // TODO 5C: devolver Producto o ProductoRebajado según exista discount.
+  //  5A: validar que sea objeto no null.
+  if (typeof registroApi !== "object" || registroApi === null || Array.isArray(registroApi)) {
+    throw new ErrorValidacion(
+      "registroApi",
+      "El registro de la API debe ser un objeto válido."
+    );
+  }
+
+  //  5B: mapear name->nombre, price->precio, discount->descuento.
+  const datos = {
+    sku: registroApi.sku,
+    nombre: registroApi.name,
+    precio: registroApi.price,
+    stock: registroApi.stock,
+    descuento: registroApi.discount,
+  };
+
+  //  5C: devolver Producto o ProductoRebajado según exista discount.
+  if (datos.descuento !== undefined && datos.descuento !== null) {
+    return new ProductoRebajado(datos);
+  }
+
+  return new Producto(datos);
 }
+
 export function construirCatalogo(registrosApi) {
   const validos = [];
   const rechazados = [];
   const skusVistos = new Set();
-  // TODO 5D: recorrer con forEach((registro, indice) => {...}).
-  // TODO 5E: try/catch DENTRO; crearProducto, detectar duplicados, guardar válido.
-  // TODO 5F: si ErrorValidacion, push {indice, sku, motivo}; si otro error, throw error.
+
+  //  5D: recorrer con forEach((registro, indice) => {...}).
+  registrosApi.forEach((registro, indice) => {
+    //  5E: try/catch DENTRO; crearProducto, detectar duplicados, guardar válido.
+    try {
+      const producto = crearProducto(registro);
+
+      if (skusVistos.has(producto.sku)) {
+        throw new ErrorValidacion(
+          "sku",
+
+          `El SKU "${producto.sku}" está duplicado en el catálogo.`
+        );
+      }
+
+      skusVistos.add(producto.sku);
+      validos.push(producto);
+    } catch (error) {
+      //  5F: si ErrorValidacion, push {indice, sku, motivo}; si otro error, throw error.
+      if (error instanceof ErrorValidacion) {
+        const skuFallido =
+          registro && typeof registro === "object" && registro.sku
+            ? registro.sku
+            : "(sin sku)";
+
+        rechazados.push({
+          indice,
+          sku: skuFallido,
+          motivo: error.message,
+        });
+      } else {
+        throw error;
+      }
+    }
+  });
+
   return { validos, rechazados };
 }
