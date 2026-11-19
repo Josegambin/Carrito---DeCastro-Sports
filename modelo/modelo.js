@@ -66,16 +66,17 @@ function exigirEnteroNoNegativo(campo, valor) {
 
 
 
-
 // PASO 2 · Producto
 export class Producto {
   #sku; #nombre; #precio; #stock;
 
   constructor({ sku, nombre, precio, stock = 0 }) {
     //  2A: comprobar PATRON_SKU.test(sku) y guardar #sku.
-    if (!PATRON_SKU.test(sku.trim())) {
+    if (typeof sku !== "string" || !PATRON_SKU.test(sku.trim())) {
       throw new ErrorValidacion(
-        sku, `El SKU -> "${sku}" debe tener el formato AAA-0000.`);
+        "sku",
+        `El SKU -> "${sku}" debe tener el formato AAA-0000.`
+      );
     }
     // 2B: asignar this.nombre y this.precio para pasar por los setters.
     this.#sku = sku.trim();
@@ -106,14 +107,10 @@ export class Producto {
     return this.#stock >= cant;
 
   }
+
   reponer(cantidad) {
-    // 2G: validar entero positivo y aumentar #stock.
-    if (!exigirEnteroPositivo(cantidad)) {
-      throw new ErrorValidacion(
-        cantidad,
-        `La Cantidad "${cantidad} "no es un numero positivo y entero.`
-      )
-    }
+    const validada = exigirEnteroPositivo("cantidad", cantidad);
+    this.#stock += validada;
   }
 
   retirar(cantidad) {
